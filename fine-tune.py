@@ -58,14 +58,14 @@ lora_config = LoraConfig(
 #Testing dataset
 from datasets import load_dataset
 
-data = load_dataset("Abirate/english_quotes")
-data = data.map(lambda samples: tokenizer(samples["quote"]), batched=True)
+data = load_dataset("mfarre/thermomix")
+data = data.map(lambda samples: tokenizer(samples["steps"]), batched=True)
 
 import transformers
 from trl import SFTTrainer
 
 def formatting_func(example):
-    text = f"Quote: {example['quote'][0]}\nAuthor: {example['author'][0]}"
+    text = f"Recipe: {example['title'][0]}\nSteps: {example['steps'][0]}"
     return [text]
 
 trainer = SFTTrainer(
@@ -75,7 +75,7 @@ trainer = SFTTrainer(
         per_device_train_batch_size=1,
         gradient_accumulation_steps=4,
         warmup_steps=2,
-        max_steps=10,
+        max_steps=1000,
         learning_rate=2e-4,
         fp16=True,
         logging_steps=1,
@@ -89,10 +89,10 @@ trainer.train()
 
 
 # We test the training
-text = "Quote: Imagination is"
+text = "Risotto aux petits pois et aux lardons"
 device = "cuda:0"
 inputs = tokenizer(text, return_tensors="pt").to(device)
 
-outputs = model.generate(**inputs, max_new_tokens=20)
+outputs = model.generate(**inputs, max_new_tokens=590)
 print(tokenizer.decode(outputs[0], skip_special_tokens=True))
-     
+
